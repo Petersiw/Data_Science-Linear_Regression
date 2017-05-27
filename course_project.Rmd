@@ -1,0 +1,107 @@
+---
+title: "Course Project"
+output: pdf_document
+author: "Ming Wei Siw"
+---
+
+## Research Questions
+
+1. Is an automatic or manual transmission better for MPG?
+
+2. Quantify the MPG difference between automatic and manual transmissions?
+
+## Executive Summary
+
+On the surface, manual transmission is better for MPG. The magnitude of MPG difference is at about 7.25 more MPG in favour of manual transmission. However, further analyses shows that transmission is a poor predictor of MPG.
+
+### Analyses
+
+### Load Data
+
+```{r}
+data(mtcars)
+```
+
+### Hypothesis Tests and Modelling
+
+Plots suggest that manual cars are better for MPG than for automatic cars. Hence, tests and models will further investigate this hypothesis.
+
+#### T-tests For Miles per Gallon With Different Transmission Types
+
+```{r}
+with(mtcars, t.test(x = mpg[am == 0], y = mpg[am == 1], alternative = "two.sided"))
+```
+
+Null hypothesis of equal means are rejected. Therefore automatic and manual transmission have difference means in terms of MPG which are statistically significant at 5%.
+
+---
+
+#### Linear Models of Miles per Gallon Against Transmission Types
+
+##### Miles per Gallon ~ Transmission Types
+
+```{r}
+m1 <- lm(mpg ~ factor(am), data = mtcars)
+summary(m1)
+```
+
+This linear model seems to affirm the result of the t-test. Indeed, this model predicts 7.25 more MPG for manual cars as compared to automatic cars.
+
+##### Miles per Gallon ~ Transmission Types + Weight
+
+```{r}
+c <- with(mtcars, cor(wt, am))
+m2 <- lm(mpg ~ factor(am) + wt, data = mtcars)
+summary(m2)
+anova(m1, m2)
+```
+
+Considering the high correlation between weight and tranmission types (`r c`), it is wise to include it in predicting MPG. Curiously, the effect of transmission types became almost irrelevant in this model. Given the near zero coefficient, holding weight constant. The higher adjusted R squared shows that this model is a better fit than the previous one. Anova tests further affirms this.
+
+## Conclusion
+
+It is found that manual transmission is better for MPG, with a magnitude of 7.25 additional MPG for manual cars. However, by including weight of cars, it becomes apparent that transmission types are poor predictor of MPG, as the coefficient is not statistically significant. Caution is advised in modelling MPG as there are variables which have yet to be included which might result in biased coefficients.
+
+---
+
+## Appendices
+
+### Exploratory Plots of Miles per Gallon vs Transmission Types
+
+#### Convert 0/1 in am to Automatic or Manual For Easier Interpretation
+
+```{r}
+for (i in 1:nrow(mtcars)) {
+  if (mtcars$am[i] == 0) {
+    mtcars$am1[i] = "automatic"
+  } else {
+    mtcars$am1[i] = "manual"
+  }
+}
+```
+
+#### Boxplot of Miles per Gallon for Different Transmission Types
+
+```{r, fig.align='center', fig.height=3, fig.width=4}
+require(ggplot2)
+ggplot(data = mtcars, aes(y = mpg, x = factor(am1))) +
+  geom_boxplot(col = "salmon") +
+  labs(title = "Miles per Gallon for Different Transmission Types", 
+       x = "Transmission Types", y = "Miles per Gallon") +
+  theme(plot.title = element_text(hjust = 0.5, size = 10))
+diff.m <- median(mtcars$mpg[mtcars$am1 == "manual"]) - 
+  median(mtcars$mpg[mtcars$am1 == "automatic"])
+```
+
+Automatic vehicles seem to have lesser MPG than manual cars according to the boxplot. And the difference in the medians appears to be quite large as well, around `r diff.m` MPG.
+
+### Analytic Plots of Linear Models
+
+```{r, fig.align="center"}
+par(mfrow = c(2,2))
+plot(m1)
+par(mfrow = c(2,2))
+plot(m2)
+```
+
+Plots of model 1 is shows that residuals are rather evenly distributed into two groups. Residuals are also quite normal. Model 2 plots shows however that Chrysler Imperial, Fiat 128 and Toyota Corolla are among the outliers.
