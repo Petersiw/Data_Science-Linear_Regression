@@ -1,6 +1,8 @@
 ---
 title: "Course Project"
-output: pdf_document
+output: 
+  md_document: 
+  pdf_document:
 author: "Ming Wei Siw"
 ---
 
